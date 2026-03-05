@@ -43,7 +43,7 @@ def extract_phone(text: str) -> str:
     """Extract phone number from resume text."""
     phone_pattern = r'(\+?1?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})'
     match = re.search(phone_pattern, text)
-    return match.group() if match else "Phone not found"
+    return match.group().strip() if match else "Phone not found"
 
 
 def extract_skills(text: str) -> list:
