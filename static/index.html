@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            font-size: 1.05rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #334155;
+            border-radius: 16px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #1e293b;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #60a5fa;
+            background: #1e293b;
+            box-shadow: 0 0 30px rgba(96, 165, 250, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: #a78bfa;
+            background: rgba(167, 139, 250, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg);}
+        }
+
+        .results {
+            display: none;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            color: #f1f5f9;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .info-item {
+            padding: 10px 14px;
+            background: #0f172a;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+        }
+
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skills-tag {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: rgba(96, 165, 250, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.25);
+        }
+
+        .job-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 14px;
+            border: 1px solid #334155;
+            transition: all 0.2s ease;
+        }
+
+        .job-card:hover {
+            border-color: #475569;
+            transform: translateY(-1px);
+        }
+
+        .jobheader {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .job-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .job-company {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .score-high {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .score-mid {
+            background: rgba(250, 204, 21, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(250, 204, 21, 0.25);
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .score-bar-container {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .score-bar-item {
+            flex: 1
+        }
+
+        .score-bar-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .score-bar-track {
+            height: 6px;
+            background: #0f172a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .skill-bar-fill { background: #60a5fa; }
+        .text-bar-fill { background: #a78bfa; }
+
+        .job-skills {
+            display: flex;
+            flex-wrap: wap;
+            gap: 6px;
+        }
+
+        .skill-match {
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+        }
+
+        .skill-missing {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
+        .reset-btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 12px 32px;
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn:hover {
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+    </style> 
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Analyzer</h1>
+        <p class="subtitle">Upload your resume and see how you match against open positions</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <p class="upload-text">Drop your resume here or click to browse</p>
+            <p class="upload-hint">PDF files only</p>
+            <input type="file" class="file-input" id="fileInput" accept=".pdf">
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your resume...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <h2>Profile</h2>
+                <div class="info-grid" id="profileInfo"></div>
+            </div>
+
+            <div class="card">
+                <h2>Skills Found</h2>
+                <div class="skills-container" id="skillsList"></div>
+            </div>
+
+            <div class="card">
+                <h2>Job Matches</h2>
+                <div id="jobMatches"></div>
+            </div>
+
+            <button class="reset-btn" id="resetBtn">Analyze Another Resume</button>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                uploadFile(file);
+            }
+        });
+
+        // File selected
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                uploadFile(e.target.files[0]);
+            }
+        });
+
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            results.style.display = 'none';
+            uploadArea.style.display = 'block';
+            fileInput.value = '';
+        });
+
+        async function uploadFile(file) {
+            uploadArea.style.display = 'none';
+            loading.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload-resume/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Upload failed');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                alert('Error: ' + error.message);
+                uploadArea.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            // Profile info
+            const profileInfo = document.getElementById('profileInfo');
+            profileInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">${data.data.name}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">${data.data.email}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">${data.data.phone}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Resume</div>
+                    <div class="info-value">${data.filename}</div>
+                </div>
+            `;
+
+            // Skills
+            const skillsList = document.getElementById('skillsList');
+            skillsList.innerHTML = data.data.skills
+                .map(s => `<span class="skill-tag">${s}</span>`)
+                .join('');
+
+            // Job matches
+            const jobMatches = document.getElementById('jobMatches');
+            jobMatches.innerHTML = data.job_matches.map(job => {
+                const scoreClass = job.combined_score >= 60 ? 'score-high' :
+                                   job.combined_score >= 35 ? 'score-mid' : 'score-low';
+
+                const skillTags = [
+                    ...job.matching_skills.map(s => `<span class="job-skill skill-match">${s}</span>`),
+                    ...job.missing_skills.map(s => `<span class="job-skill skill-missing">${s}</span>`)
+                ].join('');
+
+                return `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <div class="job-title">${job.title}</div>
+                                <div class="job-company">${job.company}</div>
+                            </div>
+                            <span class="score-badge ${scoreClass}">${job.combined_score}%</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-item">
+                                <div class="score-bar-label">Skill Match ${job.skill_score}%</div>
+                                <div class="score-bar-track">
+                                    <div class="score-bar-fill skill-bar-fill" style="width: ${job.skill_score}%"></div>
+                                </div>
+                            </div>
+                            <div class="score-bar-item">
+                                <div class="score-bar-label">Text Match ${job.text_score}%</div>
+                                <div class="score-bar-track">
+                                    <div class="score-bar-fill text-bar-fill" style="width: ${job.text_score}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="job-skills">${skillTags}</div>
+                    </div>
+                `;
+            }).join('');
+
+            results.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
