@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.resume_parser import parse_resume
 from app.job_matcher import match_resume_to_jobs
+from app.job_search import search_jobs
 
 app = FastAPI(
     title="Resume Analyzer API",
@@ -24,7 +25,7 @@ def root():
 
 @app.post("/upload-resume/")
 async def upload_resume(file: UploadFile = File(...)):
-    """Accept a PDF resume upload and return parsed data."""
+    """Accept a PDF resume upload and return parsed data with real job matches."""
 
     # Validate file type
     if not file.filename.endswith(".pdf"):
@@ -50,6 +51,13 @@ async def upload_resume(file: UploadFile = File(...)):
         # Clean up the uploaded file
         os.remove(file_path)
 
+    # Search for real jobs based on the candidate's top skills
+    search_query = " ".join(result["skills"][:3])
+    real_jobs = search_jobs(search_query)
+
+    # Match resume against real jobs
+    job_matches = match_resume_to_jobs(result["skills"], result["raw_text"], real_jobs)
+
     return {
         "filename": file.filename,
         "data": {
@@ -58,5 +66,5 @@ async def upload_resume(file: UploadFile = File(...)):
             "phone": result["phone"],
             "skills": result["skills"]
         },
-        "job_matches": match_resume_to_jobs(result["skills"], result["raw_text"])
+        "job_matches": job_matches
     }

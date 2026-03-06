@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Analyzer</title>
     <style>
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0f172a;
             color: #e2e8f0;
             min-height: 100vh;
@@ -99,7 +99,7 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg);}
+            to { transform: rotate(360deg); }
         }
 
         .results {
@@ -151,7 +151,7 @@
             gap: 8px;
         }
 
-        .skills-tag {
+        .skill-tag {
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -174,7 +174,7 @@
             transform: translateY(-1px);
         }
 
-        .jobheader {
+        .job-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -193,6 +193,13 @@
             margin-top: 2px;
         }
 
+        .score-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
         .score-high {
             background: rgba(34, 197, 94, 0.15);
             color: #4ade80;
@@ -201,7 +208,7 @@
 
         .score-mid {
             background: rgba(250, 204, 21, 0.15);
-            color: #f87171;
+            color: #facc15;
             border: 1px solid rgba(250, 204, 21, 0.25);
         }
 
@@ -218,7 +225,7 @@
         }
 
         .score-bar-item {
-            flex: 1
+            flex: 1;
         }
 
         .score-bar-label {
@@ -245,8 +252,14 @@
 
         .job-skills {
             display: flex;
-            flex-wrap: wap;
+            flex-wrap: wrap;
             gap: 6px;
+        }
+
+        .job-skill {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
         }
 
         .skill-match {
@@ -257,6 +270,35 @@
         .skill-missing {
             background: rgba(239, 68, 68, 0.12);
             color: #f87171;
+        }
+
+        .job-location {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .job-salary {
+            font-size: 0.85rem;
+            color: #4ade80;
+            margin-top: 2px;
+        }
+
+        .apply-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 6px 16px;
+            background: rgba(96, 165, 250, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .apply-link:hover {
+            background: rgba(96, 165, 250, 0.25);
         }
 
         .reset-btn {
@@ -276,7 +318,7 @@
             border-color: #60a5fa;
             color: #60a5fa;
         }
-    </style> 
+    </style>
 </head>
 <body>
     <div class="container">
@@ -425,12 +467,24 @@
                     ...job.missing_skills.map(s => `<span class="job-skill skill-missing">${s}</span>`)
                 ].join('');
 
+                const location = job.location ? `<div class="job-location">📍 ${job.location}</div>` : '';
+                const salary = job.salary_min && job.salary_max
+                    ? `<div class="job-salary">💰 ${Number(job.salary_min).toLocaleString()} - ${Number(job.salary_max).toLocaleString()}</div>`
+                    : job.salary_min
+                    ? `<div class="job-salary">💰 ${Number(job.salary_min).toLocaleString()}</div>`
+                    : '';
+                const applyLink = job.url
+                    ? `<a href="${job.url}" target="_blank" class="apply-link">View Job →</a>`
+                    : '';
+
                 return `
                     <div class="job-card">
                         <div class="job-header">
                             <div>
                                 <div class="job-title">${job.title}</div>
                                 <div class="job-company">${job.company}</div>
+                                ${location}
+                                ${salary}
                             </div>
                             <span class="score-badge ${scoreClass}">${job.combined_score}%</span>
                         </div>
@@ -449,6 +503,7 @@
                             </div>
                         </div>
                         <div class="job-skills">${skillTags}</div>
+                        ${applyLink}
                     </div>
                 `;
             }).join('');
