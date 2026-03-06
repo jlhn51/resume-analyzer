@@ -32,7 +32,7 @@ SAMPLE_JOBS = [
         "required_skills": ["python", "javascript", "react", "node.js", "mongodb", "docker", "git"],
         "description": "Work across the entire stack building features from database to UI."
     },
-     {
+    {
         "id": 5,
         "title": "ML Engineer",
         "company": "AI Solutions",
@@ -43,7 +43,7 @@ SAMPLE_JOBS = [
 
 
 def skill_match_score(resume_skills: list, job_skills: list) -> dict:
-    """Calculate how well resume skills match a job's required skills"""
+    """Calculate how well resume skills match a job's required skills."""
     resume_set = set(s.lower() for s in resume_skills)
     job_set = set(s.lower() for s in job_skills)
 
@@ -78,25 +78,38 @@ def match_resume_to_jobs(resume_skills: list, resume_text: str, jobs: list = Non
 
     for job in jobs:
         skill_result = skill_match_score(resume_skills, job["required_skills"])
-        text_score = text_similarity_score(resume_text, job["description"])
+        text_score = text_similarity_score(resume_text, job.get("description", ""))
 
         # Combined score: 70% skill match, 30% text similarity
         combined_score = round(skill_result["score"] * 0.7 + text_score * 0.3, 1)
 
-        results.append({
-            "job_id": job["id"],
-            "title": job["title"],
-            "company": job["company"],
+        result = {
+            "job_id": job.get("id"),
+            "title": job.get("title", "Unknown Title"),
+            "company": job.get("company", "Unknown Company"),
             "combined_score": combined_score,
             "skill_score": skill_result["score"],
             "text_score": text_score,
             "matching_skills": skill_result["matching_skills"],
             "missing_skills": skill_result["missing_skills"]
-        })
+        }
+
+        # Include extra fields from real job data if available
+        if "location" in job:
+            result["location"] = job["location"]
+        if "salary_min" in job:
+            result["salary_min"] = job["salary_min"]
+        if "salary_max" in job:
+            result["salary_max"] = job["salary_max"]
+        if "url" in job:
+            result["url"] = job["url"]
+
+        results.append(result)
 
     # Sort by combined score, highest first
     results.sort(key=lambda x: x["combined_score"], reverse=True)
     return results
+
 
 if __name__ == "__main__":
     # Test with sample resume data
@@ -109,8 +122,8 @@ if __name__ == "__main__":
     matches = match_resume_to_jobs(test_skills, test_text)
     for match in matches:
         print(f"\n{match['title']} at {match['company']}")
-        print(f" Combined Score: {match['combined_score']}%")
-        print(f" Skill Match: {match['skill_score']}%")
-        print(f" Text Match: {match['text_score']}%")
-        print(f" Matching: {', '.join(match['matching_skills'])}")
-        print(f" Missing: {', '.join(match['missing_skills'])}")
+        print(f"  Combined Score: {match['combined_score']}%")
+        print(f"  Skill Match: {match['skill_score']}%")
+        print(f"  Text Match: {match['text_score']}%")
+        print(f"  Matching: {', '.join(match['matching_skills'])}")
+        print(f"  Missing: {', '.join(match['missing_skills'])}")
