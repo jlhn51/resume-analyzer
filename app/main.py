@@ -57,4 +57,5 @@ async def upload_resume(file: UploadFile = File(...)):
             "skills": result["skills"]
         },
         "job_matches": match_resume_to_jobs(result["skills"], result["raw_text"])
+        }
     }
