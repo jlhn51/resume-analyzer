@@ -1,6 +1,8 @@
 import os
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.resume_parser import parse_resume
 from app.job_matcher import match_resume_to_jobs
 
@@ -16,8 +18,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.get("/")
 def root():
-    """Health check endpoint."""
-    return {"status": "running", "message": "Resume Analyzer API is live"}
+    """Serve the frontend."""
+    return FileResponse("static/index.html")
 
 
 @app.post("/upload-resume/")
@@ -30,7 +32,7 @@ async def upload_resume(file: UploadFile = File(...)):
             status_code=400,
             detail="Only PDF files are accepted"
         )
-    
+
     # Save the uploaded file
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as buffer:
@@ -57,5 +59,4 @@ async def upload_resume(file: UploadFile = File(...)):
             "skills": result["skills"]
         },
         "job_matches": match_resume_to_jobs(result["skills"], result["raw_text"])
-        }
     }
