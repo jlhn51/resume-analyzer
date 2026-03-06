@@ -2,6 +2,7 @@ import os
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from app.resume_parser import parse_resume
+from app.job_matcher import match_resume_to_jobs
 
 app = FastAPI(
     title="Resume Analyzer API",
@@ -54,5 +55,7 @@ async def upload_resume(file: UploadFile = File(...)):
             "email": result["email"],
             "phone": result["phone"],
             "skills": result["skills"]
+        },
+        "job_matches": match_resume_to_jobs(result["skills"], result["raw_text"])
         }
     }
